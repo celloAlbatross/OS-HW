@@ -29,6 +29,10 @@ class TicketMachine extends Thread{
                 int randMov = rand.nextInt(MAX_MOV);
                 int randTick = rand.nextInt(5) + 1;
                 int delay = (int)(Math.random()*500);
+                System.out.println("Before Lock ");
+                for(int i=0; i<MAX_MOV; i++) {
+                    System.out.println("Theater" + i + ": " + c.theater[i]);
+                }
                 if(c.theater[randMov] - randTick >= 0) {
                     c.theater[randMov] -= randTick;
                     isLock = true;
@@ -36,13 +40,15 @@ class TicketMachine extends Thread{
                 Thread.sleep(delay);
                 int isBuy = rand.nextInt(2);
 
-                if(isBuy == 1) {
+                if(isBuy == 1 && isLock) {
 //                    Thread.sleep(delay);
-
+                    System.out.println("Before " + myName +" Buy Theater: " + (randMov+1) + " = " + ((c.theater[randMov]) + randTick));
+                    System.out.println(myName + " Buy theater: " + (randMov+1) + " for " + randTick);
                     for(int i=0; i<MAX_MOV; i++) {
                         System.out.println("Theater " + (i+1) + ": " + c.theater[i]);
                     }
                 }else {
+                    System.out.println(myName + " Can't Buy / Not Buy " );
                     if(isLock)
                         c.theater[randMov] += randTick;
                 }
