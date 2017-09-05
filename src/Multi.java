@@ -1,7 +1,31 @@
 import java.util.Random;
 
 class Theater{
-    int thearter;
+    int seat;
+    int randNum;
+
+    public void setSeat(int seat) {
+        this.seat = seat;
+    }
+
+    public synchronized boolean lockSeat(int randNum) {
+        if(seat - randNum >= 0) {
+            this.randNum = randNum;
+            seat -= randNum;
+            return true;
+        }
+        return  false;
+    }
+
+    public synchronized void releaseSeat(int randNum) {
+        seat += this.randNum;
+    }
+
+
+    public int getSeat() {
+        return seat;
+    }
+
 }
 
 class TicketMachine extends Thread{
@@ -23,34 +47,40 @@ class TicketMachine extends Thread{
             while(true){
                 int theRestOfTick = 0;
                 boolean isLock = false;
+
                 for (int i=0; i<MAX_MOV; i++){
-                    theRestOfTick += c[i].thearter;
+                    theRestOfTick += c[i].seat;
                 }
+
                 int randMov = rand.nextInt(MAX_MOV);
                 int randTick = rand.nextInt(5) + 1;
                 int delay = (int)(Math.random()*500);
-                System.out.println("Before Lock ");
-                for(int i=0; i<MAX_MOV; i++) {
-                    System.out.println("Theater" + i + ": " + c[i].thearter);
-                }
-                if(c[randMov].thearter - randTick >= 0) {
-                    c[randMov].thearter -= randTick;
-                    isLock = true;
+
+                isLock = c[randMov].lockSeat(randTick);
+                if(isLock) {
+                    System.out.println(myName + " lock " + randMov + " for " + randTick);
+                    System.out.println("remain seat of theater " + randMov + " = " + c[randMov].seat);
                 }
                 Thread.sleep(delay);
-                int isBuy = rand.nextInt(2);
+
+                int isBuy = rand.nextInt(2); //random are you buy?
 
                 if(isBuy == 1 && isLock) {
-//                    Thread.sleep(delay);
-                    System.out.println("Before " + myName +" Buy Theater: " + (randMov+1) + " = " + ((c[randMov].thearter) + randTick));
-                    System.out.println(myName + " Buy theater: " + (randMov+1) + " for " + randTick);
-                    for(int i=0; i<MAX_MOV; i++) {
-                        System.out.println("Theater " + (i+1) + ": " + c[i].thearter);
-                    }
+//                    System.out.println(myName + " buy " + randMov + " for " + randTick);
                 }else {
-//                    System.out.println(myName + " Can't Buy / Not Buy " );
-                    if(isLock)
-                        c[randMov].thearter += randTick;
+                    if(isLock) {
+                        c[randMov].releaseSeat(randTick);
+                        System.out.println(myName + " Release " + randMov + " for " + randTick);
+                    }
+                }
+                if(isLock && isBuy == 1) {
+//                    System.out.print(myName + " : ");
+//                    for (int i = 0; i < MAX_MOV; i++) {
+//                        System.out.print(c[i].seat + " ");
+//                    }
+//                    System.out.println();
+                    System.out.println(myName + " Buy " + randMov + " for " + randTick);
+                    System.out.println("remain seat of theater " + randMov + " = " + c[randMov].seat);
                 }
             }
 
@@ -81,11 +111,12 @@ public class Multi {
         }
 
         System.out.println("debug");
-        System.out.println(c[0].thearter);
+        System.out.println(c[0].seat);
 
         for(int i=0; i<MAX_MOV; i++) {
-            c[i].thearter = MAX_SEAT;
+            c[i].setSeat(MAX_SEAT);
         }
+
         TicketMachine t1 = new TicketMachine("t1", c);
         TicketMachine t2 = new TicketMachine("t2", c);
         TicketMachine t3 = new TicketMachine("t3", c);
